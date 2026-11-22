@@ -28,6 +28,7 @@ echo Hotkeys:
 echo   - 1: Play Bricks of Egypt (40 Levels & 8 Packs)
 echo   - 2: Play Jardinains! (Gnomes & Juggling)
 echo   - 3: Play Mashup Mode (Gnomes in Egypt)
+echo   - 4: Play Chrono Breaker: The Lost Dimensions (60 Levels & 6 Worlds)
 echo   - Mouse or Left/Right Arrow keys: Move paddle
 echo   - Click or Spacebar: Launch ball and fire lasers/harpoons
 echo   - P: Pause

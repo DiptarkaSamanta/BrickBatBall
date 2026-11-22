@@ -63,6 +63,19 @@ body {
     transform: translateY(-1px);
 }
 
+.chrono-glow-btn {
+    background: linear-gradient(135deg, #0284c7 0%, #7c3aed 100%) !important;
+    border-color: #38bdf8 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.45);
+    animation: chronoPulse 2s infinite alternate;
+}
+
+@keyframes chronoPulse {
+    0% { box-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
+    100% { box-shadow: 0 0 20px rgba(236, 72, 153, 0.6); }
+}
+
 .game-nav-btn.active {
     background: linear-gradient(135deg, #b45309, #78350f);
     border-color: #facc15;

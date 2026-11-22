@@ -18,10 +18,11 @@ def find_free_port():
 def main():
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     port = find_free_port()
-    url = f"http://localhost:{port}/index.html"
+    target = "chrono.html" if len(sys.argv) > 1 and "chrono" in sys.argv[1].lower() else "index.html"
+    url = f"http://localhost:{port}/{target}"
 
     print("==================================================================")
-    print("      BRICKS OF EGYPT & JARDINAINS! - INSTANT ARCADE PLAY")
+    print("  ARCADE SUITE: BRICKS OF EGYPT, JARDINAINS & CHRONO BREAKER")
     print("==================================================================")
     print(f"Starting local server at {url} ...")
     print("Opening game in your default browser...")

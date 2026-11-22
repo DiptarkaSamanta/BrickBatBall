@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHRONO BREAKER: THE LOST DIMENSIONS - 2D Sci-Fi Arcade Breakout</title>
+    <link rel="stylesheet" href="chrono.css">
+</head>
+<body>
+
+    <!-- Header Bar with Suite Switcher -->
+    <nav class="suite-header-bar">
+        <a href="index.html" class="suite-link-btn">⬅️ Return to Bricks of Egypt & Jardinains Suite</a>
+        <div style="font-size: 12px; color: #64748b; font-weight: 600;">CHRONO BREAKER v1.0 • 60 LEVELS • 6 WORLDS</div>
+    </nav>
+
+    <!-- Main Game Wrapper Container -->
+    <div id="chrono-container">
+        <canvas id="chrono-canvas" width="800" height="600"></canvas>
+
+        <!-- In-Game HUD -->
+        <header id="chrono-hud" style="display: none;">
+            <div class="hud-group">
+                <div class="hud-item">
+                    <span class="hud-label">SCORE:</span>
+                    <span class="hud-value highlight" id="chrono-score">0</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">HIGH:</span>
+                    <span class="hud-value" id="chrono-highscore">0</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">LOCATION:</span>
+                    <span class="hud-value" id="chrono-level-info" style="color: #38bdf8;">Lost Egypt 1</span>
+                </div>
+            </div>
+
+            <div class="hud-group">
+                <div id="chrono-combo" style="display: none;">x2 COMBO!</div>
+                <div id="chrono-active-powerups"></div>
+            </div>
+
+            <div class="hud-group">
+                <div class="hud-item">
+                    <span class="hud-label">SHARDS:</span>
+                    <span class="hud-value" id="chrono-crystals" style="color: #22d3ee;">0 💎</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">LIVES:</span>
+                    <span class="hud-value" id="chrono-lives">❤️❤️❤️</span>
+                </div>
+                <button class="chrono-btn" style="padding: 4px 10px; font-size: 11px;" onclick="window.chronoEngine.togglePause()">⏸️ Pause</button>
+            </div>
+        </header>
+
+        <!-- Main Menu Screen -->
+        <section id="chrono-main-menu">
+            <div class="menu-logo">
+                <h1 class="menu-title">CHRONO BREAKER</h1>
+                <div class="menu-subtitle">THE LOST DIMENSIONS</div>
+            </div>
+
+            <div class="menu-stats-row">
+                <div>💎 Chrono Crystals: <span class="menu-crystal-count" style="color: #22d3ee;">0</span></div>
+                <div>🏆 High Score: <span class="menu-highscore-count" style="color: #facc15;">0</span></div>
+            </div>
+
+            <div class="menu-buttons">
+                <button class="chrono-btn primary" id="btn-chrono-play">▶️ PLAY CAMPAIGN</button>
+                <button class="chrono-btn" id="btn-chrono-levels">🗺️ LEVEL SELECT (60)</button>
+                <button class="chrono-btn" id="btn-chrono-upgrades">⚡ UPGRADE MATRIX</button>
+                <button class="chrono-btn" id="btn-chrono-achievements">🏆 ACHIEVEMENTS</button>
+                <button class="chrono-btn" id="btn-chrono-settings">⚙️ SETTINGS</button>
+                <button class="chrono-btn" id="btn-chrono-help">📖 HOW TO PLAY</button>
+            </div>
+        </section>
+
+        <!-- Modal Windows Overlay -->
+        <div id="chrono-modal-overlay">
+
+            <!-- 1. Level Select Modal -->
+            <div id="modal-level-select" class="chrono-modal-card" style="display: none;">
+                <div class="chrono-modal-header">
+                    <h2>🗺️ DIMENSIONAL LEVEL SELECTION</h2>
+                    <button class="chrono-modal-close">✖</button>
+                </div>
+                <div class="chrono-modal-body">
+                    <div id="level-select-tabs"></div>
+                    <div id="level-select-grid"></div>
+                </div>
+            </div>
+
+            <!-- 2. Upgrade Matrix Modal -->
+            <div id="modal-upgrades" class="chrono-modal-card" style="display: none;">
+                <div class="chrono-modal-header">
+                    <h2>⚡ QUANTUM UPGRADE MATRIX</h2>
+                    <button class="chrono-modal-close">✖</button>
+                </div>
+                <div class="chrono-modal-body">
+                    <div style="margin-bottom: 14px; font-size: 13px; color: #94a3b8; display: flex; justify-content: space-between;">
+                        <span>Enhance your paddle and temporal equipment using Chrono Shards.</span>
+                        <span style="color: #22d3ee; font-weight: bold;">Available: <span id="shop-crystal-count">0</span> 💎</span>
+                    </div>
+                    <div id="upgrades-container"></div>
+                </div>
+            </div>
+
+            <!-- 3. Achievements Modal -->
+            <div id="modal-achievements" class="chrono-modal-card" style="display: none;">
+                <div class="chrono-modal-header">
+                    <h2>🏆 CHRONO ACHIEVEMENTS</h2>
+                    <button class="chrono-modal-close">✖</button>
+                </div>
+                <div class="chrono-modal-body">
+                    <div id="achievements-container"></div>
+                </div>
+            </div>
+
+            <!-- 4. Settings Modal -->
+            <div id="modal-settings" class="chrono-modal-card" style="display: none;">
+                <div class="chrono-modal-header">
+                    <h2>⚙️ SYSTEM SETTINGS</h2>
+                    <button class="chrono-modal-close">✖</button>
+                </div>
+                <div class="chrono-modal-body">
+                    <div class="setting-row">
+                        <span class="setting-label">Master Volume</span>
+                        <input type="range" id="setting-master-vol" min="0" max="100" value="80">
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Music Volume</span>
+                        <input type="range" id="setting-music-vol" min="0" max="100" value="60">
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">SFX Volume</span>
+                        <input type="range" id="setting-sfx-vol" min="0" max="100" value="80">
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Screen Shake FX</span>
+                        <input type="checkbox" id="setting-shake-toggle" checked style="width: 20px; height: 20px; accent-color: #38bdf8;">
+                    </div>
+                    <div style="margin-top: 24px; display: flex; justify-content: flex-end;">
+                        <button class="chrono-btn danger" id="btn-reset-save" style="font-size: 12px;">🗑️ Reset Save Data</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Instructions / Help Modal -->
+            <div id="modal-help" class="chrono-modal-card" style="display: none;">
+                <div class="chrono-modal-header">
+                    <h2>📖 HOW TO PLAY: CHRONO BREAKER</h2>
+                    <button class="chrono-modal-close">✖</button>
+                </div>
+                <div class="chrono-modal-body" style="font-size: 12px; line-height: 1.6; color: #cbd5e1;">
+                    <h3 style="color: #38bdf8; margin-bottom: 4px;">🎮 CONTROLS</h3>
+                    <p>• <strong>Mouse / Arrow Keys / A & D:</strong> Move the paddle horizontally across the dimensional field.</p>
+                    <p>• <strong>Left Click / Spacebar:</strong> Launch active or stuck ball, fire laser cannons.</p>
+                    <p>• <strong>P / Esc:</strong> Pause & resume game.</p>
+                    <p>• <strong>R:</strong> Restart current level.</p>
+
+                    <h3 style="color: #facc15; margin: 12px 0 4px;">🧱 SPECIAL BRICK MECHANICS</h3>
+                    <p>• <strong>Stone Bricks:</strong> Multi-hit armored blocks requiring 2-3 strikes. Fissures appear progressively.</p>
+                    <p>• <strong>Iron Bricks:</strong> Indestructible to normal balls. Shattered by explosions or laser fire.</p>
+                    <p>• <strong>Explosive TNT:</strong> Detonates in a wide fiery shockwave, triggering chain explosions!</p>
+                    <p>• <strong>Moving Bricks:</strong> Patrol back and forth horizontally across the row.</p>
+                    <p>• <strong>Invisible Bricks:</strong> Cloaked in temporal stealth; reveals faintly when ball strikes nearby.</p>
+                    <p>• <strong>Regenerating Bricks:</strong> Self-repairs 6.5s after being broken unless level is cleared!</p>
+                    <p>• <strong>Portal Bricks:</strong> Paired wormholes that teleport the ball across the screen with velocity preserved!</p>
+                    <p>• <strong>Crystal Bricks:</strong> Shatter to release collectible 💎 Chrono Crystals used for permanent upgrades!</p>
+
+                    <h3 style="color: #ec4899; margin: 12px 0 4px;">⚡ POWER-UPS</h3>
+                    <p>• <strong>Multi-Ball (⚡3):</strong> Spawns 2 extra balls at diverging angles.</p>
+                    <p>• <strong>Fireball (🔥):</strong> Slices through destructible bricks without deflecting.</p>
+                    <p>• <strong>Wide Paddle (⬌):</strong> Expands paddle width by 50%.</p>
+                    <p>• <strong>Magnet (🧲):</strong> Catches ball upon impact; aim and press Space/Click to relaunch.</p>
+                    <p>• <strong>Laser Cannons (⚡):</strong> Mounts twin blaster cannons on paddle wings.</p>
+                    <p>• <strong>Slow Motion (⏳):</strong> Dilates time, reducing ball speed by 50% for high precision.</p>
+                    <p>• <strong>Time Freeze (❄️):</strong> Freezes all moving hazards, obstacles and boss attacks.</p>
+                    <p>• <strong>Energy Barrier (🛡️):</strong> Energy net at bottom of screen that bounces falling balls back up.</p>
+
+                    <h3 style="color: #a855f7; margin: 12px 0 4px;">💀 WORLD BOSSES</h3>
+                    <p>Every 10th level features a supreme Dimension Boss (Sphinx, Goliath, Wyrm, Core, Devourer, Architect) with dynamic health bars, attack patterns, and projectile barrages to dodge!</p>
+                </div>
+            </div>
+
+            <!-- 6. Pause Modal -->
+            <div id="modal-pause" class="chrono-modal-card" style="display: none; max-width: 360px; text-align: center;">
+                <div class="chrono-modal-header" style="justify-content: center;">
+                    <h2>⏸️ TIME SUSPENDED</h2>
+                </div>
+                <div class="chrono-modal-body" style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="chrono-btn primary" onclick="window.chronoEngine.togglePause()">▶️ Resume</button>
+                    <button class="chrono-btn" onclick="window.chronoEngine.restartCurrentLevel()">🔄 Restart Level</button>
+                    <button class="chrono-btn" onclick="window.chronoEngine.ui.openLevelSelect()">🗺️ Level Select</button>
+                    <button class="chrono-btn danger" onclick="window.chronoEngine.ui.showMainMenu()">🏠 Main Menu</button>
+                </div>
+            </div>
+
+            <!-- 7. Level Win Modal -->
+            <div id="modal-win" class="chrono-modal-card" style="display: none; max-width: 440px; text-align: center;">
+                <div class="chrono-modal-header" style="justify-content: center;">
+                    <h2 id="win-modal-title" style="color: #10b981;">🎉 LEVEL CLEARED!</h2>
+                </div>
+                <div class="chrono-modal-body">
+                    <div id="win-modal-stars" style="font-size: 32px; margin: 12px 0;">⭐⭐⭐</div>
+                    <div style="margin: 8px 0; font-size: 15px;">Final Score: <strong id="win-modal-score" style="color: #facc15;">0</strong></div>
+                    <div style="margin: 8px 0; font-size: 14px;">Chrono Shards Earned: <strong id="win-modal-crystals" style="color: #22d3ee;">+0 💎</strong></div>
+                    <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                        <button class="chrono-btn success" id="btn-win-next">Next Level ➡️</button>
+                        <button class="chrono-btn" onclick="window.chronoEngine.ui.openLevelSelect()">Level Select</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. Boss Defeated Modal -->
+            <div id="modal-bosswin" class="chrono-modal-card" style="display: none; max-width: 480px; text-align: center;">
+                <div class="chrono-modal-header" style="justify-content: center;">
+                    <h2 id="bosswin-title" style="color: #ec4899;">👑 BOSS DEFEATED!</h2>
+                </div>
+                <div class="chrono-modal-body">
+                    <div style="font-size: 40px; margin: 10px 0;">🌌✨</div>
+                    <p id="bosswin-desc" style="font-size: 14px; color: #cbd5e1; margin-bottom: 16px;">The dimensional fracture has been restored!</p>
+                    <button class="chrono-btn primary" id="btn-bosswin-next" style="margin: 0 auto;">Enter Next Dimension ➡️</button>
+                </div>
+            </div>
+
+            <!-- 9. Game Over Modal -->
+            <div id="modal-gameover" class="chrono-modal-card" style="display: none; max-width: 400px; text-align: center;">
+                <div class="chrono-modal-header" style="justify-content: center;">
+                    <h2 style="color: #ef4444;">💀 TIMELINE COLLAPSED</h2>
+                </div>
+                <div class="chrono-modal-body">
+                    <p style="font-size: 13px; color: #94a3b8;">All chrono lives exhausted.</p>
+                    <div style="margin: 14px 0;">Score: <strong id="gameover-score" style="color: #facc15;">0</strong></div>
+                    <div style="margin-bottom: 20px;">High Score: <strong id="gameover-highscore">0</strong></div>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button class="chrono-btn danger" id="btn-gameover-retry">🔁 Try Again</button>
+                        <button class="chrono-btn" onclick="window.chronoEngine.ui.openLevelSelect()">🗺️ Level Select</button>
+                        <button class="chrono-btn" onclick="window.chronoEngine.ui.showMainMenu()">🏠 Main Menu</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ES6 Module Entry Point -->
+    <script type="module" src="src/main.js"></script>
+
+</body>
+</html>
