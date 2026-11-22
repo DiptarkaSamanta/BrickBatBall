@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRICKS OF EGYPT & JARDINAINS! - Arcade Suite</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Primary Game Switcher Bar -->
+    <nav class="game-select-bar">
+        <button class="game-nav-btn active" data-mode="bricks_of_egypt" onclick="window.game.switchGameMode('bricks_of_egypt')">
+            🏺 BRICKS OF EGYPT (40 Levels & Packs)
+        </button>
+        <button class="game-nav-btn" data-mode="jardinains" onclick="window.game.switchGameMode('jardinains')">
+            🧙‍♂️ JARDINAINS! (Gnomes & Juggling)
+        </button>
+        <button class="game-nav-btn" data-mode="mashup" onclick="window.game.switchGameMode('mashup')">
+            ⚡ MASHUP (Gnomes in Egypt)
+        </button>
+    </nav>
+
+    <!-- Game Header & Live HUD -->
+    <header id="game-header">
+        <div class="logo-container">
+            <span class="gnome-icon" id="game-title-icon">🏺</span>
+            <span class="game-title" id="game-title-text">BRICKS OF EGYPT</span>
+        </div>
+
+        <div class="hud-stats">
+            <div class="stat-box">
+                <span class="stat-label">SCORE</span>
+                <span class="stat-value" id="score-display">0</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">HIGH SCORE</span>
+                <span class="stat-value" id="highscore-display">0</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">LEVEL / PACK</span>
+                <span class="stat-value" id="level-display" style="font-size: 13px; color: #facc15;">[Tutankhamen] 1: Chamber</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">LIVES</span>
+                <span class="stat-value" id="lives-display">☥ ☥ ☥</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Toolbar & Active Power-ups -->
+    <section id="toolbar">
+        <div class="tool-btn-group">
+            <button class="btn" id="btn-mute" onclick="window.soundManager.toggleMute(); document.getElementById('btn-mute').innerText = window.soundManager.isMuted ? '🔇 Unmute' : '🔊 Sound';">🔊 Sound</button>
+            <button class="btn" id="btn-music" onclick="const on = window.soundManager.toggleMusic(); document.getElementById('btn-music').innerText = on ? '🎵 Music: ON' : '🔇 Music: OFF';">🎵 Music: ON</button>
+            <button class="btn" onclick="window.game.togglePause();">⏸️ Pause (P)</button>
+            <button class="btn" onclick="window.game.toggleLevelSelect();">🗺️ Level Packs (L)</button>
+            <button class="btn" onclick="window.game.editor.toggle();">✏️ Level Editor (E)</button>
+            <button class="btn" onclick="window.game.toggleHelp();">❓ Instructions (H)</button>
+        </div>
+
+        <div id="active-powerups"></div>
+    </section>
+
+    <!-- Canvas Wrapper with In-Game Overlays -->
+    <main id="canvas-wrapper">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <!-- Pause Overlay -->
+        <div id="pause-overlay" class="overlay-screen" style="display: none;">
+            <div class="overlay-content">
+                <h2 class="overlay-title pause">GAME PAUSED</h2>
+                <p class="overlay-text">Take a breather, adventurer! Press <strong>P</strong> or click below to resume.</p>
+                <div class="overlay-buttons">
+                    <button class="overlay-btn primary" onclick="window.game.togglePause();">▶️ Resume Game</button>
+                    <button class="overlay-btn secondary" onclick="window.game.restartLevel(); window.game.togglePause();">🔄 Restart Level</button>
+                    <button class="overlay-btn secondary" onclick="window.game.toggleLevelSelect();">🗺️ Choose Level Pack</button>
+                    <button class="overlay-btn secondary" onclick="window.game.toggleHelp();">❓ Instructions</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level Cleared Overlay -->
+        <div id="level-win-overlay" class="overlay-screen" style="display: none;">
+            <div class="overlay-content">
+                <h2 class="overlay-title win">🎉 LEVEL CLEARED!</h2>
+                <p class="overlay-text" id="win-level-name">Tomb Cleared!</p>
+                <p class="overlay-text" id="win-bonus-text" style="color: #facc15; font-weight: bold;"></p>
+                <div class="overlay-buttons">
+                    <button class="overlay-btn success" onclick="window.game.nextLevel();">Next Level ➡️</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Overlay -->
+        <div id="game-over-overlay" class="overlay-screen" style="display: none;">
+            <div class="overlay-content">
+                <h2 class="overlay-title over">💀 GAME OVER</h2>
+                <p class="overlay-text">The ancient pharaohs have claimed victory!</p>
+                <p class="overlay-text" id="final-score-text" style="color: #facc15; font-size: 20px; font-weight: bold;"></p>
+                <div class="overlay-buttons">
+                    <button class="overlay-btn danger" onclick="window.game.startNewGame();">🔁 Play Again</button>
+                    <button class="overlay-btn secondary" onclick="window.game.toggleLevelSelect();">🗺️ Level Select</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Controls Reminder -->
+    <footer id="game-footer">
+        <p><strong>Hotkeys:</strong> 1: Bricks of Egypt | 2: Jardinains! | 3: Mashup | Mouse / Arrow Keys to move paddle | Click / Space to launch & fire | P: Pause | M: Mute | L: Levels | E: Editor | R: Restart</p>
+    </footer>
+
+    <!-- Level Select Modal (With Game & Pack Tabs) -->
+    <div id="level-select-modal" class="modal-screen">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>🗺️ CHOOSE GAME & LEVEL PACK</h2>
+                <button class="close-btn" onclick="window.game.toggleLevelSelect();">✖</button>
+            </div>
+            <div class="modal-body">
+                <div class="campaign-tabs">
+                    <button class="tab-btn active" id="tab-boe" onclick="switchModalGame('bricks_of_egypt')">🏺 Bricks of Egypt (40 Levels & 8 Packs)</button>
+                    <button class="tab-btn" id="tab-jard" onclick="switchModalGame('jardinains')">🧙‍♂️ Jardinains! (30 Garden Levels)</button>
+                    <button class="tab-btn" id="tab-mashup" onclick="switchModalGame('mashup')">⚡ Mashup (Gnomes in Egypt)</button>
+                </div>
+                <div id="levels-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Level Editor Modal -->
+    <div id="editor-modal" class="modal-screen">
+        <div class="modal-card" style="max-width: 840px;">
+            <div class="modal-header">
+                <h2>✏️ LEVEL EDITOR: BRICKS OF EGYPT & JARDINAINS</h2>
+                <button class="close-btn" onclick="window.game.editor.toggle();">✖</button>
+            </div>
+            <div class="modal-body">
+                <!-- Bricks of Egypt Hieroglyphs Toolbar -->
+                <div class="editor-toolbar" style="background: #1a1209; border: 1px solid #78350f;">
+                    <span style="font-weight: bold; color: #f59e0b; font-size: 12px;">EGYPT BLOCKS:</span>
+                    <button class="editor-tool-btn" onclick="selectBrickTool('A', this)" style="background: #f59e0b; color: #000;">☥ Ankh</button>
+                    <button class="editor-tool-btn" onclick="selectBrickTool('E', this)" style="background: #0284c7;">𓂀 Horus Eye</button>
+                    <button class="editor-tool-btn" onclick="selectBrickTool('S', this)" style="background: #059669;">𓆣 Scarab</button>
+                    <button class="editor-tool-btn" onclick="selectBrickTool('R', this)" style="background: #dc2626;">𓇳 Sun of Ra</button>
+                    <button class="editor-tool-btn" onclick="selectBrickTool('F', this)" style="background: #1d4ed8;">𓅃 Falcon</button>
+                    <button class="editor-tool-btn" onclick="selectBrickTool('L', this)" style="background: #9333ea;">𓆸 Lotus</button>
+                    <button class="editor-tool-btn" onclick="selectBrickTool('G', this)" style="background: #eab308; color: #000;">𓊪 Cartouche (2)</button>
+                    <button class="editor-tool-btn" onclick="selectBrickTool('K', this)" style="background: #78716c;">𓊅 Sarcophagus (3)</button>
+                    <button class="editor-tool-btn" onclick="selectBrickTool('U', this)" style="background: #b45309;">🏺 Oil Urn</button>
+                    <button class="editor-tool-btn" onclick="selectBrickTool('O', this)" style="background: #27272a;">𓉐 Obelisk Ingot</button>
+                    <button class="editor-tool-btn" onclick="selectBrickTool('X', this)" style="background: #ea580c;">🔥 Fire Brick</button>
+                </div>
+
+                <!-- Garden Bricks Toolbar -->
+                <div class="editor-toolbar">
+                    <span style="font-weight: bold; color: #38bdf8; font-size: 12px;">GARDEN:</span>
+                    <button class="editor-tool-btn active" id="tool-1" onclick="selectBrickTool('1', this)" style="background: #3b82f6;">Blue (1)</button>
+                    <button class="editor-tool-btn" id="tool-2" onclick="selectBrickTool('2', this)" style="background: #22c55e;">Green (2)</button>
+                    <button class="editor-tool-btn" id="tool-3" onclick="selectBrickTool('3', this)" style="background: #eab308; color: #000;">Yellow (3)</button>
+                    <button class="editor-tool-btn" id="tool-4" onclick="selectBrickTool('4', this)" style="background: #f97316;">Orange (4)</button>
+                    <button class="editor-tool-btn" id="tool-5" onclick="selectBrickTool('5', this)" style="background: #ef4444;">Red (5)</button>
+                    <button class="editor-tool-btn" id="tool-6" onclick="selectBrickTool('6', this)" style="background: #a855f7;">Purple (6)</button>
+                    <button class="editor-tool-btn" id="tool-C" onclick="selectBrickTool('C', this)" style="background: #94a3b8; color: #000;">Cracked (2)</button>
+                    <button class="editor-tool-btn" id="tool-H" onclick="selectBrickTool('H', this)" style="background: #64748b;">Heavy (3)</button>
+                    <button class="editor-tool-btn" id="tool-T" onclick="selectBrickTool('T', this)" style="background: #dc2626;">TNT</button>
+                    <button class="editor-tool-btn" id="tool-I" onclick="selectBrickTool('I', this)" style="background: #e2e8f0; color: #000;">Ingot</button>
+                    <button class="editor-tool-btn" id="tool-Q" onclick="selectBrickTool('?', this)" style="background: #06b6d4;">★ Powerup</button>
+                    <button class="editor-tool-btn" id="tool-dot" onclick="selectBrickTool('.', this)" style="background: #1e293b; border-color: #ef4444;">❌ Erase</button>
+                </div>
+
+                <!-- Gnomes Palette (For Jardinains & Mashup) -->
+                <div class="editor-toolbar">
+                    <span style="font-weight: bold; color: #facc15; font-size: 12px;">GNOMES:</span>
+                    <button class="editor-tool-btn" onclick="selectGnomeTool('normal', this)">🧙‍♂️ Normal</button>
+                    <button class="editor-tool-btn" onclick="selectGnomeTool('grumpy', this)">🧙 Grumpy</button>
+                    <button class="editor-tool-btn" onclick="selectGnomeTool('speedy', this)">⚡ Speedy</button>
+                    <button class="editor-tool-btn" onclick="selectGnomeTool('king', this)">👑 King</button>
+                    <button class="editor-tool-btn" onclick="selectGnomeTool('mummy', this)" style="background: #78716c;">🧟 Mummy</button>
+                    <button class="editor-tool-btn" onclick="selectGnomeTool('pharaoh', this)" style="background: #b45309;">👑 Pharaoh</button>
+                    <button class="editor-tool-btn" onclick="selectGnomeTool('anubis', this)" style="background: #171717;">🐺 Anubis</button>
+                    <button class="editor-tool-btn" onclick="selectGnomeTool('remove', this)">❌ Remove</button>
+                </div>
+
+                <div id="editor-canvas-container"></div>
+
+                <div style="display: flex; gap: 10px; margin-top: 15px; justify-content: flex-end;">
+                    <button class="btn" onclick="window.game.editor.initEmptyGrid(); window.game.editor.renderGridUI();">🗑️ Clear Grid</button>
+                    <button class="btn" onclick="window.game.editor.importJSON();">📥 Import JSON</button>
+                    <button class="btn" onclick="window.game.editor.exportJSON();">📋 Export JSON</button>
+                    <button class="btn btn-primary" style="background: #16a34a; border-color: #22c55e;" onclick="window.game.editor.testPlay();">▶️ Test Play Level</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions / Help Modal -->
+    <div id="help-modal" class="modal-screen">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>📖 INSTRUCTIONS: BRICKS OF EGYPT & JARDINAINS</h2>
+                <button class="close-btn" onclick="window.game.toggleHelp();">✖</button>
+            </div>
+            <div class="modal-body">
+                <div class="help-section">
+                    <h3>🏺 Bricks of Egypt Mechanics</h3>
+                    <p>• <strong>Sandstone Hieroglyphs:</strong> Destroy Ancient Egyptian blocks engraved with Ankhs, Eyes of Horus, Scarabs, Sun Discs, and Falcons!</p>
+                    <p>• <strong>🔥 Fire Bricks & 💧 Water Drops:</strong> Fire bricks are flaming blocks! When a <strong>Water Drop</strong> item falls and you catch it with your paddle, a cool mist sweeps across the board, extinguishing all fire bricks!</p>
+                    <p>• <strong>Falling Treasures & Scarabs:</strong> When bricks shatter, golden scarabs, silver scarabs, rubies, emeralds, and diamonds cascade down. Catch them for massive score bonuses (+500 to +2,500 pts)!</p>
+                    <p>• <strong>𓂀 Guardian Eye of Horus:</strong> Collect the Eye relic to summon a floating guardian eye that bounces around the upper tomb, firing solar beams to destroy bricks!</p>
+                    <p>• <strong>8 Classic Level Packs:</strong> Play through <em>Tutankhamen</em>, <em>Temple Mayhem</em>, <em>Echo Chambers</em>, <em>Fire on the Rocks</em>, <em>Pyramid of Madness</em>, <em>Nefertiti</em>, <em>Pharaoh's Curse</em>, and <em>The Eye of Horus</em>!</p>
+                </div>
+
+                <div class="help-section">
+                    <h3>🧙‍♂️ Jardinains! Mechanics</h3>
+                    <p>• <strong>The Gnomes ('Nains):</strong> Gnomes live inside and atop the bricks, heckling you and throwing flowerpots at your paddle. If a pot hits you, your paddle is stunned for 1.6s! Dodge them!</p>
+                    <p>• <strong>Gnome Juggling:</strong> Knock gnomes off bricks with your ball, then catch and bounce them with your paddle. Each consecutive juggle multiplies your points: <strong>100, 200, 400, 800, 1600...</strong> Bouncing them 3+ times drops guaranteed power-ups, and 5+ juggles ascends them into orbit for +5,000 points!</p>
+                </div>
+
+                <div class="help-section">
+                    <h3>⚡ Power-ups & Relics</h3>
+                    <div class="help-grid">
+                        <div class="help-item"><strong>[W] Wide Bat</strong>: Expands paddle width by 50%.</div>
+                        <div class="help-item"><strong>[S] Glue Bat</strong>: Catches ball; click/space to aim & launch.</div>
+                        <div class="help-item"><strong>[L] Laser / Harpoons</strong>: Fires rapid blasters up at bricks!</div>
+                        <div class="help-item"><strong>[M] Multi-Ball</strong>: Splits active balls into multiple balls!</div>
+                        <div class="help-item"><strong>[F] Fire of Ra / Plow</strong>: Obliterates all bricks without deflecting!</div>
+                        <div class="help-item"><strong>[B] Floor Barrier</strong>: Shield that saves 2 lost balls.</div>
+                        <div class="help-item"><strong>[Z] Freeze</strong>: Solidifies all gnomes in ice cubes for 10s.</div>
+                        <div class="help-item"><strong>☥ Ankh (+1 Life)</strong>: Bestows an extra heart/life.</div>
+                        <div class="help-item"><strong>𓆣 Scarab Swarm</strong>: Summons 4 golden balls at once!</div>
+                        <div class="help-item"><strong>💧 Water Drop</strong>: Extinguishes all fire bricks on the board!</div>
+                    </div>
+                </div>
+
+                <div class="help-section">
+                    <h3>🎮 Controls & Hotkeys</h3>
+                    <p>• <strong>1 / 2 / 3:</strong> Switch directly to Bricks of Egypt (1), Jardinains! (2), or Mashup (3)</p>
+                    <p>• <strong>Mouse / Arrow Keys:</strong> Move paddle</p>
+                    <p>• <strong>Left Click / Spacebar:</strong> Launch ball & fire lasers</p>
+                    <p>• <strong>P:</strong> Pause & Resume</p>
+                    <p>• <strong>M:</strong> Toggle Audio Mute</p>
+                    <p>• <strong>L:</strong> Level Select (Choose from all 70+ levels)</p>
+                    <p>• <strong>E:</strong> Level Editor (Create and play custom levels)</p>
+                    <p>• <strong>R:</strong> Restart current level</p>
+                    <p>• <strong>N:</strong> Skip / Clear level</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/audio.js"></script>
+    <script src="js/sprites.js"></script>
+    <script src="js/levels.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/editor.js"></script>
+    <script src="js/game.js"></script>
+
+    <!-- UI Helper Functions -->
+    <script>
+        function selectBrickTool(tool, btn) {
+            window.game.editor.selectedTool = tool;
+            window.game.editor.selectedGnomeTool = null;
+            document.querySelectorAll('.editor-tool-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function selectGnomeTool(gnomeType, btn) {
+            window.game.editor.selectedGnomeTool = gnomeType;
+            document.querySelectorAll('.editor-tool-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function switchModalGame(mode) {
+            window.game.switchGameMode(mode);
+            document.getElementById('tab-boe').classList.toggle('active', mode === 'bricks_of_egypt');
+            document.getElementById('tab-jard').classList.toggle('active', mode === 'jardinains');
+            document.getElementById('tab-mashup').classList.toggle('active', mode === 'mashup');
+            window.game.renderLevelSelectGrid();
+        }
+    </script>
+</body>
+</html>
